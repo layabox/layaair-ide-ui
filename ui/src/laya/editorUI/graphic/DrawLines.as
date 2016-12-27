@@ -17,6 +17,7 @@ package laya.editorUI.graphic {
 		private var _start:Handler;
 		private var _end:Handler;
 		private var _draging:Handler;
+		private var _doubleClick:Handler;
 		
 		public function DrawLines() {
 			super();
@@ -26,16 +27,59 @@ package laya.editorUI.graphic {
 			_start = new Handler(this, _endPointStartDrag);
 			_end = new Handler(this, _endPointDragEnd);
 			_draging = new Handler(this, _endPointDraging);
+			_doubleClick = new Handler(this, onDoubleClick);
+			this.mouseThrough = true;
 		}
 		
+		private function onDoubleClick(sp:Sprite):void
+		{
+			if (!isSelectState) return;
+			var i:int, len:int;
+			len = pointSpList.length;
+			for (i = 0; i < len; i++)
+			{
+				if (pointSpList[i] == sp)
+				{
+					
+					(sp as ControlPoint).recover();
+					pointSpList.splice(i, 1);
+					_updateAndChangeValue();
+					return;
+				}
+			}
+		}
 		private function _displayChange():void {
-			this.on(Event.MOUSE_DOWN, this, _mMouseDown);
-			this.off(Event.MOUSE_DOWN, this, _mMouseDown);
+			
+			this.off(Event.DOUBLE_CLICK, this, _mMouseDown);
+			this.on(Event.DOUBLE_CLICK, this, _mMouseDown);
 			drawSelf();
 		}
+		public function getDistance(sp0:Sprite,sp1:Sprite):Number
+		{
+			var dx:Number = sp1.x - sp0.x;
+			var dy:Number = sp1.y - sp0.y;
+			return Math.sqrt(dx * dx + dy * dy);
+		}
+		private function _mMouseDown(e:Event):void {
 		
-		private function _mMouseDown():void {
-		
+			if (!isSelectState) return;
+			
+			//if(!e.
+			//trace("lines mouseDown");
+			if (e.target is ControlPoint) return ;
+			var nCt:ControlPoint;
+			nCt = _getAControlPoint();
+			nCt.pos(this.mouseX, this.mouseY);
+			if (getDistance(pointSpList[0], nCt) < getDistance(pointSpList[pointSpList.length - 1], nCt))
+			{
+				pointSpList.unshift(nCt);
+			}else
+			{
+				pointSpList.push(nCt);
+			}
+			
+			
+			_updateAndChangeValue();
 		}
 		
 		public function getPointsByStr(str:String):Array {
@@ -80,7 +124,7 @@ package laya.editorUI.graphic {
 				var tsp:ControlPoint;
 				len = pointList.length;
 				for (i = 0; i < len; i += 2) {
-					tsp = ControlPoint.getControlPoint(_start, _end, _draging);
+					tsp = _getAControlPoint();
 					tsp.pos(pointList[i], pointList[i + 1]);
 					myAddChild(tsp);
 					pointSpList.push(tsp);
@@ -88,6 +132,10 @@ package laya.editorUI.graphic {
 			}
 		}
 		
+		private function _getAControlPoint():ControlPoint
+		{
+			return ControlPoint.getControlPoint(_start, _end, _draging,_doubleClick);
+		}
 		protected function drawWork():void {
 			this.graphics.drawLines(0, 0, pointList, lineColor, lineWidth);
 		}
@@ -110,6 +158,12 @@ package laya.editorUI.graphic {
 		}
 		
 		private function _endPointDragEnd():void {
+			
+		
+			_updateAndChangeValue();
+		}
+		protected function _updateAndChangeValue():void
+		{
 			updateTos();
 			var data:Object;
 			data = this["comXml"];
@@ -117,9 +171,7 @@ package laya.editorUI.graphic {
 				data.props.points = points;
 				IDEAPIS.nodeChange(data, ["points"], false);
 			}
-		
 		}
-		
 		private function updateTos():void {
 			points = getPointsArrBySpList(pointSpList).join(",");
 			drawSelf();

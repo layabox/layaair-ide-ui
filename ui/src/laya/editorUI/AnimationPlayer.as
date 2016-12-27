@@ -64,6 +64,7 @@ package laya.editorUI {
 			url = ResFileManager.getIDEPagePath(url);
 			Loader.clearRes(url);
 			delete framesMap[url];
+			Animation.clearCache(url);
 			return super.loadAnimation(url, loaded, true);
 		}
 		

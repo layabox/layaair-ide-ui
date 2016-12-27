@@ -12,6 +12,7 @@ package laya.editorUI.graphic {
 		public var startHandler:Handler;
 		public var endHandler:Handler;
 		public var dragingHandler:Handler;
+		public var doubleHandler:Handler;
 		
 		public function ControlPoint() {
 			this.graphics.drawCircle(5, 5, 5, "#ffffff", "#ff0000", 1);
@@ -20,8 +21,15 @@ package laya.editorUI.graphic {
 			this.on(Event.MOUSE_DOWN, this, _endPointStartDrag, [this]);
 			this.on(Event.DRAG_END, this, _endPointDragEnd, [this]);
 			this.on(Event.DRAG_MOVE, this, _endPointDraging, [this]);
+			this.on(Event.DOUBLE_CLICK, this, _doubleClick, [this]);
 		}
 		
+		private function _doubleClick(sp:Sprite):void {
+			if (doubleHandler)
+			{
+				doubleHandler.runWith(sp);
+			}
+		}
 		private function _endPointStartDrag(sp:Sprite, e:Event):void {
 			e.stopPropagation();
 			if (startHandler) {
@@ -46,15 +54,17 @@ package laya.editorUI.graphic {
 			startHandler = null;
 			dragingHandler = null;
 			endHandler = null;
+			doubleHandler=null
 			Pool.recover("ControlPoint", this);
 		}
 		
-		public static function getControlPoint(start:Handler, end:Handler, draging:Handler):ControlPoint {
+		public static function getControlPoint(start:Handler, end:Handler, draging:Handler,doubleHandler:Handler=null):ControlPoint {
 			var rst:ControlPoint;
 			rst = Pool.getItemByClass("ControlPoint", ControlPoint);
 			rst.startHandler = start;
 			rst.endHandler = end;
 			rst.dragingHandler = draging;
+			rst.doubleHandler = doubleHandler;
 			return rst;
 		}
 	}

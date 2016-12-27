@@ -79,6 +79,51 @@ package laya.editorUI {
 			if (disableLayout) return;
 			super.resetLayoutY();
 		}
+		
+		override public function set width(value:Number):void {
+			if (_width != value) {
+				_width = value;
+				model && model.size(_width, _height);
+				//callLater(changeSize);
+				if (_layout.enable && (!isNaN(_layout.centerX) || !isNaN(_layout.right) || !isNaN(_layout.anchorX))) resetLayoutX();
+				changeSize();
+			}
+		}
+		
+		override public function set height(value:Number):void {
+			if (_height != value) {
+				_height = value;
+				model && model.size(_width, _height);
+				//callLater(changeSize);
+				if (_layout.enable && (!isNaN(_layout.centerY) || !isNaN(_layout.bottom) || !isNaN(_layout.anchorY))) resetLayoutY();
+				changeSize();
+			}
+		}
+		
+		/**@inheritDoc */
+		override public function set scaleX(value:Number):void {
+			if (super.scaleX != value) {
+				super.scaleX = value;
+				//callLater(changeSize);
+				_layout.enable && resetLayoutX();
+				changeSize();
+			}
+		}
+		override protected function changeSize():void 
+		{
+			super.changeSize();
+			resetLayoutX();
+			resetLayoutY();
+		}
+		/**@inheritDoc */
+		override public function set scaleY(value:Number):void {
+			if (super.scaleY != value) {
+				super.scaleY = value;
+				//callLater(changeSize);
+				_layout.enable && resetLayoutY();
+				changeSize();
+			}
+		}
 		///**@inheritDoc */
 		//override public function destroy(destroyChild:Boolean = true):void {
 			//super.destroy(destroyChild);

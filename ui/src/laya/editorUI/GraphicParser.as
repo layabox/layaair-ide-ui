@@ -9,8 +9,9 @@ package laya.editorUI {
 		private static var _I:GraphicAnimation;
 		
 		override protected function _getTextureByUrl(url:String):String {
-			url = ResFileManager.getIDEResPath(url);
-			return super._getTextureByUrl(url);
+			//url = ResFileManager.getIDEResPath(url);
+			return Loader.getRes(url);
+			//return super._getTextureByUrl(url);
 		}
 		
 		public static function parseAnimationData(aniData:Object):Object {

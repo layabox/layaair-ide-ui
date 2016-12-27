@@ -267,7 +267,16 @@ package laya.editorUI {
 		public function get content():Sprite {
 			return _content;
 		}
+		override public function get comXml():Object 
+		{
+			return super.comXml;
+		}
 		
+		override public function set comXml(value:Object):void 
+		{
+			super.comXml = value;
+			content.comXml = value;
+		}
 		/**
 		 * @private
 		 * 滚动条的<code><code>Event.MOUSE_DOWN</code>事件侦听处理函数。</code>事件侦听处理函数。 

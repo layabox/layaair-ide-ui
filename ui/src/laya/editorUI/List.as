@@ -358,14 +358,10 @@ package laya.editorUI {
 				//自适应宽高
 				var cell:Box = createItem();
 				
-				var cellWidth:Number = cell.width + _spaceX;
-				var cellHeight:Number = cell.height + _spaceY;
-				debugger;
-				if (cellHeight <= 0) cellHeight = 5;
-				if (cellWidth <= 0) cellWidth = 5;
-				if (_width > 0) _repeatX2 = Math.round(_width / cellWidth);
-				if (_height > 0) _repeatY2 = Math.round(_height / cellHeight);
-				
+				var cellWidth:Number = (cell.width + _spaceX) || 1;
+				var cellHeight:Number = (cell.height + _spaceY) || 1;
+				if (_width > 0) _repeatX2 = _isVertical ? Math.round(_width / cellWidth) : Math.ceil(_width / cellWidth);
+				if (_height > 0) _repeatY2 = _isVertical ? Math.ceil(_height / cellHeight) : Math.round(_height / cellHeight);
 				
 				var listWidth:Number = _width ? _width : (cellWidth * repeatX - _spaceX);
 				var listHeight:Number = _height ? _height : (cellHeight * repeatY - _spaceY);
@@ -379,16 +375,8 @@ package laya.editorUI {
 				//创建新单元格				
 				var numX:int = _isVertical ? repeatX : repeatY;
 				var numY:int = (_isVertical ? repeatY : repeatX) + (_scrollBar ? 1 : 0);
-				for (var k:int = 0; k < numY; k++) {
-					for (var l:int = 0; l < numX; l++) {
-						cell = createItem();
-						cell.x = (_isVertical ? l : k) * cellWidth;
-						cell.y = (_isVertical ? k : l) * cellHeight;
-						cell.name = "item" + (k * numX + l);
-						_content.addChild(cell);
-						addCell(cell);
-					}
-				}
+				_createItems(0, numX, numY);
+				_createdLine = numY;
 				
 				if (_array) {
 					array = _array;
@@ -397,6 +385,32 @@ package laya.editorUI {
 			}
 		}
 		
+		private function _createItems(startY:int, numX:int, numY:int):void {
+			var box:Box = _content;
+			var cell:Box = createItem();
+			var cellWidth:Number = cell.width + _spaceX;
+			var cellHeight:Number = cell.height + _spaceY;
+			
+			if (cacheContent) {
+				var cacheBox:Box = new Box();
+				cacheBox.cacheAsBitmap = true;
+				cacheBox.pos((_isVertical ? 0 : startY) * cellWidth, (_isVertical ? startY : 0) * cellHeight);
+				_content.addChild(cacheBox);
+				_content.optimizeScrollRect = true;
+				box = cacheBox;
+			}
+			
+			for (var k:int = startY; k < numY; k++) {
+				for (var l:int = 0; l < numX; l++) {
+					cell = createItem();
+					cell.x = (_isVertical ? l : k) * cellWidth - box.x;
+					cell.y = (_isVertical ? k : l) * cellHeight - box.y;
+					cell.name = "item" + (k * numX + l);
+					box.addChild(cell);
+					addCell(cell);
+				}
+			}
+		}
 		protected function createItem():Box {
 			return _itemRender is Function ? new _itemRender() : View.createComp(_itemRender) as Box;
 		}
@@ -488,45 +502,69 @@ package laya.editorUI {
 		/**
 		 * @private
 		 * 滚动条的 <code>Event.CHANGE</code> 事件侦听处理函数。
-		 * @param e
 		 */
-		protected function onScrollBarChange(e:Event):void {
+		protected function onScrollBarChange(e:Event = null):void {
 			runCallLater(changeCells);
 			var scrollValue:Number = _scrollBar.value;
 			var lineX:int = (_isVertical ? this.repeatX : this.repeatY);
 			var lineY:int = (_isVertical ? this.repeatY : this.repeatX);
-			var index:int = Math.floor(scrollValue / _cellSize) * lineX;
+			var scrollLine:int = Math.floor(scrollValue / _cellSize);
 			
-			if (index > _startIndex) {
-				var num:int = index - _startIndex;
-				var down:Boolean = true;
-				var toIndex:int = _startIndex + lineX * (lineY + 1);
-				_isMoved = true;
-			} else if (index < _startIndex) {
-				num = _startIndex - index;
-				down = false;
-				toIndex = _startIndex - 1;
-				_isMoved = true;
-			}
-			
-			for (var i:int = 0; i < num; i++) {
-				if (down) {
-					var cell:Box = _cells.shift();
-					_cells[_cells.length] = cell;
-					var cellIndex:int = toIndex + i;
-				} else {
-					cell = _cells.pop();
-					_cells.unshift(cell);
-					cellIndex = toIndex - i;
+			if (!cacheContent) {
+				var index:int = scrollLine * lineX;
+				if (index > _startIndex) {
+					var num:int = index - _startIndex;
+					var down:Boolean = true;
+					var toIndex:int = _startIndex + lineX * (lineY + 1);
+					_isMoved = true;
+				} else if (index < _startIndex) {
+					num = _startIndex - index;
+					down = false;
+					toIndex = _startIndex - 1;
+					_isMoved = true;
 				}
-				var pos:Number = Math.floor(cellIndex / lineX) * _cellSize;
-				_isVertical ? cell.y = pos : cell.x = pos;
-				renderItem(cell, cellIndex);
+				
+				for (var i:int = 0; i < num; i++) {
+					if (down) {
+						var cell:Box = _cells.shift();
+						_cells[_cells.length] = cell;
+						var cellIndex:int = toIndex + i;
+					} else {
+						cell = _cells.pop();
+						_cells.unshift(cell);
+						cellIndex = toIndex - i;
+					}
+					var pos:Number = Math.floor(cellIndex / lineX) * _cellSize;
+					_isVertical ? cell.y = pos : cell.x = pos;
+					renderItem(cell, cellIndex);
+				}
+				_startIndex = index;
+				changeSelectStatus();
+			} else {
+				num = (lineY + 1);
+				if (_createdLine - scrollLine < num) {
+					_createItems(_createdLine, lineX, _createdLine + num);
+					_createdLine += num;
+					renderItems(_createdLine * lineX, 0);
+				}
 			}
-			_startIndex = index;
 			
-			if (_isVertical) _content.scrollRect.y = scrollValue;
-			else _content.scrollRect.x = scrollValue;
+			var r:Rectangle = _content.scrollRect;
+			if (_isVertical) {
+				r.y = scrollValue;
+			} else {
+				r.x = scrollValue;
+			}
+			_content.conchModel && _content.conchModel.scrollRect(r.x, r.y, r.width, r.height);
+			repaint();
+		}
+		
+		private function posCell(cell:Box, cellIndex:int):void {
+			if (!_scrollBar) return;
+			var lineX:int = (_isVertical ? this.repeatX : this.repeatY);
+			var lineY:int = (_isVertical ? this.repeatY : this.repeatX);
+			var pos:Number = Math.floor(cellIndex / lineX) * _cellSize;
+			_isVertical ? cell.y = pos : cell.x = pos;
 		}
 		
 		/**
@@ -640,6 +678,7 @@ package laya.editorUI {
 		public function set array(value:Array):void {
 			runCallLater(changeCells);
 			_array = value || [];
+			
 			var length:int = _array.length;
 			totalPage = Math.ceil(length / (repeatX * repeatY));
 			//重设selectedIndex
@@ -656,7 +695,7 @@ package laya.editorUI {
 				if (total > 1) {
 					_scrollBar.scrollSize = _cellSize;
 					_scrollBar.thumbPercent = numY / lineCount;
-					_scrollBar.setScroll(0, (lineCount - numY) * _cellSize + _cellOffset, _startIndex / numX * _cellSize);
+					_scrollBar.setScroll(0, (lineCount - numY) * _cellSize + _cellOffset, _isVertical ? _content.scrollRect.y : _content.scrollRect.x);
 					_scrollBar.target = _content;
 				} else {
 					_scrollBar.setScroll(0, 0, 0);
