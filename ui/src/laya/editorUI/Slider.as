@@ -1,4 +1,6 @@
 package laya.editorUI {
+	import laya.ide.managers.IDEAPIS;
+	import laya.ide.managers.ResFileManager;
 	import laya.maths.Point;
 	import laya.utils.Handler;
 	import laya.events.Event;
@@ -69,6 +71,8 @@ package laya.editorUI {
 		/**@private */
 		protected var _bar:Button;
 		/**@private */
+		protected var _progress:Image;
+		/**@private */
 		protected var _tx:Number;
 		/**@private */
 		protected var _ty:Number;
@@ -91,21 +95,28 @@ package laya.editorUI {
 			super.destroy(destroyChild);
 			_bg && _bg.destroy(destroyChild);
 			_bar && _bar.destroy(destroyChild);
+			_progress && _progress.destroy(destroyChild);
 			_bg = null;
 			_bar = null;
+			_progress = null;
 			changeHandler = null;
 		}
 		
 		/**@inheritDoc */	
 		override protected function createChildren():void {
 			addChild(_bg = new Image());
+			addChild(_progress = new Image());
 			addChild(_bar = new Button());
 		}
 		
 		/**@inheritDoc */	
 		override protected function initialize():void {
-			//_bar.on(Event.MOUSE_DOWN, this, onBarMouseDown);
-			_bg.sizeGrid = _bar.sizeGrid = "4,4,4,4,0";
+			if (IDEAPIS.isPreview)
+			{
+				_bar.on(Event.MOUSE_DOWN, this, onBarMouseDown);
+			}
+			
+			_progress.sizeGrid=_bg.sizeGrid = _bar.sizeGrid = "4,4,4,4,0";
 			allowClickBack = true;
 		}
 		
@@ -118,8 +129,12 @@ package laya.editorUI {
 			_maxMove = isVertical ? (height - _bar.height) : (width - _bar.width);
 			_tx = Laya.stage.mouseX;
 			_ty = Laya.stage.mouseY;
-			//Laya.stage.on(Event.MOUSE_MOVE, this, mouseMove);
-			//Laya.stage.once(Event.MOUSE_UP, this, mouseUp);
+			if (IDEAPIS.isPreview)
+			{
+				Laya.stage.on(Event.MOUSE_MOVE, this, mouseMove);
+				Laya.stage.once(Event.MOUSE_UP, this, mouseUp);
+			}
+			
 			
 			//显示提示
 			showValueText();
@@ -212,7 +227,23 @@ package laya.editorUI {
 				_skin = value;
 				_bg.skin = _skin;
 				_bar.skin = _skin.replace(".png", "$bar.png");
+				var _progressSkin:String = _skin.replace(".png", "$progress.png");
+				if (ResFileManager.hasRes(_progressSkin))
+				{
+					_progress.skin = _progressSkin;
+					if (!_progress.parent)
+					{
+						addChild(_progress);
+						addChild(_bar);
+					}	
+				}else
+				{
+					_progress.removeSelf();
+					
+				}
+				
 				setBarPoint();
+				callLater(changeValue);
 			}
 		}
 		
@@ -258,6 +289,7 @@ package laya.editorUI {
 		public function set sizeGrid(value:String):void {
 			_bg.sizeGrid = value;
 			_bar.sizeGrid = value;
+			if (_progress) _progress.sizeGrid = _bar.sizeGrid;
 		}
 		
 		/**
@@ -292,13 +324,22 @@ package laya.editorUI {
 		 * 改变滑块的位置值。
 		 */		
 		protected function changeValue():void {
-			//_value = Math.round(_value / _tick) * _tick;			
 			var pow:Number = Math.pow(10, (_tick + "").length - 1);
-			_value = Math.round(Math.round(_value / _tick) * _tick*pow)/pow;
+			_value = Math.round(Math.round(_value / _tick) * _tick * pow) / pow;
 			
 			_value = _value > _max ? _max : _value < _min ? _min : _value;
-			if (isVertical) _bar.y = (_value - _min) / (_max - _min) * (height - _bar.height);
-			else _bar.x = (_value - _min) / (_max - _min) * (width - _bar.width);
+			var num:Number = _max - _min;
+			if (num === 0) num = 1;
+			if (isVertical)
+			{
+				_bar.y = (_value - _min) / num * (height - _bar.height);
+				_progress.height = _bar.y+0.5*_bar.height;
+			} 
+			else
+			{
+				_bar.x = (_value - _min) / num * (width - _bar.width);
+				_progress.width = _bar.x+0.5*_bar.width;
+			}
 		}
 		
 		/**

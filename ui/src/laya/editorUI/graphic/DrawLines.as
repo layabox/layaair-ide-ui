@@ -12,7 +12,7 @@ package laya.editorUI.graphic {
 		public var points:String;
 		public var pointList:Array;
 		public var isSelectState:Boolean = false;
-		
+		public var SplitSign:String = ",";
 		private var pointSpList:Array = [];
 		private var _start:Handler;
 		private var _end:Handler;
@@ -84,7 +84,7 @@ package laya.editorUI.graphic {
 		
 		public function getPointsByStr(str:String):Array {
 			var pointArr:Array;
-			pointArr = str.split(",");
+			pointArr = str.split(SplitSign);
 			var i:int, len:int;
 			len = pointArr.length;
 			for (i = 0; i < len; i++) {
@@ -173,7 +173,7 @@ package laya.editorUI.graphic {
 			}
 		}
 		private function updateTos():void {
-			points = getPointsArrBySpList(pointSpList).join(",");
+			points = getPointsArrBySpList(pointSpList).join(SplitSign);
 			drawSelf();
 		}
 		

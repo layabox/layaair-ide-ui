@@ -1,4 +1,5 @@
 package laya.editorUI {
+	import laya.ide.managers.ResFileManager;
 	
 	/**
 	 * 脚本
@@ -7,8 +8,14 @@ package laya.editorUI {
 		
 		public function Script() {
 		
+			
 		}
 	
+		override protected function __createIcon():void 
+		{
+			iconSign = "Script";
+			super.__createIcon();
+		}
 	}
 
 }

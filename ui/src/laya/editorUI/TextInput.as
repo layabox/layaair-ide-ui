@@ -6,6 +6,7 @@ package laya.editorUI {
 	import laya.editorUI.Styles;
 	import laya.editorUI.UIUtils;
 	import laya.events.Event;
+	import laya.ide.managers.IDEAPIS;
 	
 	/**
 	 * 输入文本后调度。
@@ -144,17 +145,27 @@ package laya.editorUI {
 		
 		/**@inheritDoc */	
 		override protected function createChildren():void {
-			addChild(_tf = new Input());
+			_tf = new Input() as Text;
+			addChild(_tf);
 			if (labelDefaultFont)
 			{
 				_tf.font = labelDefaultFont;
 			}
+			if (Label.labelDefaultSize)
+			{
+				_tf.fontSize = Label.labelDefaultSize;
+			}
 			_tf.padding = Styles.inputLabelPadding;
 			_tf.mouseEnabled = false;
-			//_tf.on(Event.INPUT, this, onInput);
-			//_tf.on(Event.ENTER, this, onEnter);
-			//_tf.on(Event.BLUR, this, onBlur);
-			//_tf.on(Event.FOCUS, this, onFocus);
+			if (IDEAPIS.isPreview)
+			{
+				_tf.mouseEnabled = true;
+				_tf.on(Event.INPUT, this, onInput);
+				_tf.on(Event.ENTER, this, onEnter);
+				_tf.on(Event.BLUR, this, onBlur);
+				_tf.on(Event.FOCUS, this, onFocus);
+			}
+			
 		}
 		
 		/**
@@ -191,6 +202,10 @@ package laya.editorUI {
 			height = 22;
 		}
 		
+		override protected function checkIfShowRec():void 
+		{
+			//super.checkIfShowRec();
+		}
 		
 		/**
 		 * 表示此对象包含的文本背景 <code>AutoBitmap</code> 组件实例。 
@@ -220,6 +235,18 @@ package laya.editorUI {
 				_bg.source = Loader.getRes(_skin);
 				_width && (_bg.width = _width);
 				_height && (_bg.height = _height);
+			}
+		}
+		/**
+		 * 当前文本内容字符串。
+		 * @see laya.display.Text.text
+		 */
+		override public function set text(value:String):void 
+		{
+			if (_tf.text != value) {
+				value = value + "";
+				_tf.text = value;
+				event(Event.CHANGE);
 			}
 		}
 		

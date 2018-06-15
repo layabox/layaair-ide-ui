@@ -3,6 +3,7 @@ package laya.editorUI {
 	import laya.maths.Rectangle;
 	import laya.particle.Particle2D;
 	import laya.particle.ParticleSetting;
+	import laya.ui.IComponent;
 	
 	/**
 	 * 例子播放器

@@ -1,6 +1,7 @@
 package laya.editorUI {
 	import laya.display.Node;
 	import laya.display.Sprite;
+	import laya.ide.managers.IDEAPIS;
 	import laya.maths.Rectangle;
 	import laya.events.Event;
 	
@@ -138,6 +139,7 @@ package laya.editorUI {
 				vscroll.height = _height - (hShow ? hscroll.height : 0);
 				vscroll.scrollSize = Math.max(_height * 0.033, 1);
 				vscroll.thumbPercent = showHeight / contentH;
+				if (isNaN(vscroll.value)) vscroll.value = 0;
 				vscroll.setScroll(0, contentH - showHeight, vscroll.value);
 			}
 			if (hscroll) {
@@ -146,6 +148,7 @@ package laya.editorUI {
 				hscroll.width = _width - (vShow ? vscroll.width : 0);
 				hscroll.scrollSize = Math.max(_width * 0.033, 1);
 				hscroll.thumbPercent = showWidth / contentW;
+				if (isNaN(hscroll.value)) hscroll.value = 0;
 				hscroll.setScroll(0, contentW - showWidth, hscroll.value);
 			}
 		}
@@ -216,7 +219,11 @@ package laya.editorUI {
 		public function set vScrollBarSkin(value:String):void {
 			if (_vScrollBar == null) {
 				super.addChild(_vScrollBar = new VScrollBar());
-				//_vScrollBar.on(Event.CHANGE, this, onScrollBarChange, [_vScrollBar]);
+				if (IDEAPIS.isPreview)
+				{
+					_vScrollBar.on(Event.CHANGE, this, onScrollBarChange, [_vScrollBar]);
+				}
+				
 				_vScrollBar.target = _content;
 				callLater(changeScroll);
 			}
@@ -236,7 +243,11 @@ package laya.editorUI {
 		public function set hScrollBarSkin(value:String):void {
 			if (_hScrollBar == null) {
 				super.addChild(_hScrollBar = new HScrollBar());
-				//_hScrollBar.on(Event.CHANGE, this, onScrollBarChange, [_hScrollBar]);
+				if (IDEAPIS.isPreview)
+				{
+					_hScrollBar.on(Event.CHANGE, this, onScrollBarChange, [_hScrollBar]);
+				}
+				
 				_hScrollBar.target = _content;
 				callLater(changeScroll);
 			}
@@ -275,7 +286,7 @@ package laya.editorUI {
 		override public function set comXml(value:Object):void 
 		{
 			super.comXml = value;
-			content.comXml = value;
+			content["comXml"] = value;
 		}
 		/**
 		 * @private

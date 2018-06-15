@@ -1,6 +1,7 @@
 package laya.editorUI
 {
 	import laya.editorUI.Loader;
+	import laya.ide.managers.IDEAPIS;
 	import laya.utils.Handler;
 	import laya.resource.Texture;
 	import laya.editorUI.AutoBitmap;
@@ -263,7 +264,7 @@ package laya.editorUI
 		protected function createText():void {
 			if (!_text) {
 				_text = new Text();
-				_text.overflow = laya.display.Text.HIDDEN;
+				_text.overflow = "hidden";
 				_text.align = "center";
 				_text.valign = "middle";
 			}
@@ -277,7 +278,11 @@ package laya.editorUI
 
 			on(Event.MOUSE_DOWN, this, onMouse);
 			on(Event.MOUSE_UP, this, onMouse);
-			//on(Event.CLICK, this, onMouse);
+			if (IDEAPIS.isPreview)
+			{
+				on(Event.CLICK, this, onMouse);
+			}
+			
 		}
 		
 		/**
@@ -309,6 +314,8 @@ package laya.editorUI
 				_skin = value;
 				callLater(changeClips);
 				_setStateChanged();
+				//changeClips();
+				//changeState();
 			}
 		}
 		
@@ -350,7 +357,7 @@ package laya.editorUI
 			var width:Number = img.sourceWidth;
 			var height:Number = img.sourceHeight / _stateNum;
 			var key:String = _skin + _stateNum;
-			var clips:Array = AutoBitmap.getCache(key);
+			var clips:Array =null;
 			if (clips) _sources = clips;
 			else {
 				_sources = [];
@@ -361,7 +368,7 @@ package laya.editorUI
 						_sources.push(Texture.createFromTexture(img, 0, height * i, width, height));
 					}
 				}
-				AutoBitmap.setCache(key, _sources);
+				//AutoBitmap.setCache(key, _sources);
 			}
 			
 			if (_autoSize) {
@@ -654,6 +661,7 @@ package laya.editorUI
 			if (!_stateChanged) {
 				_stateChanged = true;
 				callLater(changeState);
+				//changeState();
 			}
 		}
 	}

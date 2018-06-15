@@ -10,10 +10,11 @@ package laya.ide {
 		public static function init(parms:*):* {
 			if (parms.font) {
 				Font.defaultFont = parms.font;
-				Label.labelDefaultFont = parms.font;
+				Label.initDefaultFontInfo(parms.font);
 			}else
 			{
-                Label.labelDefaultFont = parms.font;
+				
+                Label.initDefaultFontInfo(parms.font);
 			}
 			if (parms.createComp) {
 				View.createComp = parms.createComp;

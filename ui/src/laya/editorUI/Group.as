@@ -44,6 +44,8 @@ package laya.editorUI {
 		/**@private */
 		protected var _labelStrokeColor:String;
 		/**@private */
+		private var _labelFont:String;
+		/**@private */
 		protected var _strokeColors:String;
 		/**@private */
 		protected var _labelStroke:Number;
@@ -373,6 +375,21 @@ package laya.editorUI {
 		}
 		
 		/**
+		 * 表示按钮文本标签的字体名称，以字符串形式表示。
+		 * @see laya.display.Text.font()
+		 */
+		public function get labelFont():String {
+			return _labelFont;
+		}
+		
+		public function set labelFont(value:String):void {
+			if (_labelFont != value) {
+				_labelFont = value;
+				callLater(changeLabels);
+			}
+		}
+		
+		/**
 		 * 表示按钮文本标签的边距。
 		 *
 		 * <p><b>格式：</b>"上边距,右边距,下边距,左边距"。</p>
@@ -448,6 +465,7 @@ package laya.editorUI {
 					_labelPadding && (btn.labelPadding = _labelPadding);
 					_labelAlign && (btn.labelAlign = _labelAlign);
 					_stateNum && (btn.stateNum = _stateNum);
+					_labelFont && (btn.labelFont=_labelFont);
 					if (_direction === "horizontal") {
 						btn.y = 0;
 						btn.x = left;

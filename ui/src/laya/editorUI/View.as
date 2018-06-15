@@ -43,6 +43,10 @@ package laya.editorUI {
 			mouseEnabled = true;
 		}
 		
+		override protected function checkIfShowRec():void 
+		{
+			
+		}
 		/**
 		 * @private
 		 * 装载UI视图。用于加载模式。  

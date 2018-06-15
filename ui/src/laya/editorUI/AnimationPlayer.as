@@ -40,6 +40,10 @@ package laya.editorUI {
 			return;
 		}
 		
+		override public function set autoAnimation(value:String):void 
+		{
+			this._actionName = value;
+		}
 		override public function loadAtlas(url:String, loaded:Handler = null, cacheName:String = ""):Animation {
 			url = ResFileManager.getIDEResPath(url);
 			return super.loadAtlas(url, loaded, cacheName);
@@ -55,17 +59,17 @@ package laya.editorUI {
 			return super.loadImages(urls, cacheName);
 		}
 		
-		override protected function _parseGraphicAnimation(animationData:Object):Object {
-			if (!animationData) return null;
-			return GraphicParser.parseAnimationData(animationData);
+		/**@private */
+		override protected function _parseGraphicAnimationByData(animationObject:Object):Object {
+			return GraphicParser.parseAnimationByData(animationObject);
 		}
 		
-		override public function loadAnimation(url:String, loaded:Handler = null):Animation {
+		override public function loadAnimation(url:String, loaded:Handler = null,atlas:String=null):Animation {
 			url = ResFileManager.getIDEPagePath(url);
 			Loader.clearRes(url);
 			delete framesMap[url];
 			Animation.clearCache(url);
-			return super.loadAnimation(url, loaded, true);
+			return super.loadAnimation(url, loaded, atlas);
 		}
 		
 		override public function _getBoundPointsM(ifRotate:Boolean = false):Array {

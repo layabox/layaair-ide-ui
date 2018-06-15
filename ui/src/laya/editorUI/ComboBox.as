@@ -1,6 +1,7 @@
 package laya.editorUI {
 	import laya.display.Graphics;
 	import laya.events.Event;
+	import laya.ide.managers.IDEAPIS;
 	import laya.maths.Point;
 	import laya.utils.Handler;
 	
@@ -95,6 +96,7 @@ package laya.editorUI {
 	 * </listing>
 	 */
 	public class ComboBox extends Component {
+		public var isPreview:Boolean = false;
 		/**@private */
 		protected var _visibleNum:int = 6;
 		/**
@@ -192,18 +194,25 @@ package laya.editorUI {
 		override protected function initialize():void {
 			_button.text.align = "left";
 			_button.labelPadding = "0,0,0,5";
-			//_button.on(Event.MOUSE_DOWN, this, onButtonMouseDown);
 			
-			//_list.on(Event.CHANGE, this, onListChange);
-			//_list.on(Event.MOUSE_DOWN, this, onListDown);
 			_list.mouseHandler = Handler.create(this, onlistItemMouse, null, false);
 			
 			_scrollBar.name = "scrollBar";
 			_scrollBar.y = 1;
-			//_scrollBar.on(Event.MOUSE_DOWN, this, onScrollBarDown);
+
+			if (IDEAPIS.isPreview)
+			{
+				_button.on(Event.MOUSE_DOWN, this, onButtonMouseDown);
+		
+			_list.on(Event.CHANGE, this, onListChange);
+			_list.on(Event.MOUSE_DOWN, this, onListDown);
+			_scrollBar.on(Event.MOUSE_DOWN, this, onScrollBarDown);
+			}
+			
 		}
 		
 		private function onButtonMouseDown(e:Event):void {
+			
 			//callLater(changeOpen);
 			callLater(switchTo, [!_isOpen]);
 		}
@@ -212,11 +221,11 @@ package laya.editorUI {
 		 * @private
 		 * 更改 <code>ComboBox</code> 组件中的选定内容。
 		 */
-		//protected function onListChange(e:Event):void {
+		protected function onListChange(e:Event):void {
 		//trace("change", _list.selectedIndex);
-		//selectedIndex = _list.selectedIndex;
-		////isOpen = false;
-		//}
+		selectedIndex = _list.selectedIndex;
+		//isOpen = false;
+		}
 		
 		/**
 		 * @copy laya.ui.Button#skin
@@ -229,7 +238,8 @@ package laya.editorUI {
 		public function set skin(value:String):void {
 			if (_button.skin != value) {
 				_button.skin = value;
-				callLater(changeList);
+				//callLater(changeList);
+				changeList();
 			}
 		}
 		
@@ -454,8 +464,12 @@ package laya.editorUI {
 					var py:Number = p.y + _button.height;
 					py = py + _listHeight <= Laya.stage.width ? py : p.y - _listHeight;
 					_list.pos(p.x, py);
-					Laya.stage.addChild(_list);
-					//Laya.stage.on(Event.MOUSE_DOWN, this, removeList);
+					Laya._currentStage.addChild(_list);
+					if (IDEAPIS.isPreview)
+					{
+						Laya.stage.on(Event.MOUSE_DOWN, this, removeList);
+					}
+					
 					_list.selectedIndex = _selectedIndex;
 				} else {
 					_list.removeSelf();

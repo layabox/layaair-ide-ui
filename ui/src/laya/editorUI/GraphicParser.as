@@ -1,7 +1,5 @@
 package laya.editorUI {
-	import laya.display.GraphicAnimation;
-	import laya.display.GraphicAnimation;
-	import laya.ide.managers.ResFileManager;
+	import laya.utils.GraphicAnimation;
 	/**
 	 * Graphics解析器
 	 */
@@ -13,14 +11,14 @@ package laya.editorUI {
 			return Loader.getRes(url);
 			//return super._getTextureByUrl(url);
 		}
-		
-		public static function parseAnimationData(aniData:Object):Object {
-			if (!_I) _I = new GraphicParser();
-			_I.setAniData(aniData);
+				
+		public static function parseAnimationByData(animationObject:Object):Object
+		{
+			if (!_I)
+				_I = new GraphicParser();
 			var rst:Object;
-			rst = {};
-			rst.animationList = _I.animationList;
-			rst.animationDic = _I.animationDic;
+			rst = _I.parseByData(animationObject);
+			_I._clear();
 			return rst;
 		}
 	}

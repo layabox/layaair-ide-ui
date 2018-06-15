@@ -12,7 +12,7 @@ package laya.editorUI {
 		public function SoundPlayer() {
 			visible = true;
 			img = new Image();
-			
+			img.scaleX = img.scaleY = 0.5;
 			addChild(img);
 			autoSize = true;
 		}

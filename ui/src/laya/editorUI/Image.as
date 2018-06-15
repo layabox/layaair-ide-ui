@@ -1,5 +1,7 @@
 package laya.editorUI
 {
+	import laya.display.Sprite;
+	import laya.ide.managers.IDEAPIS;
 	import laya.renders.RenderSprite;
 	import laya.editorUI.Loader;
 	import laya.resource.Texture;
@@ -103,15 +105,17 @@ package laya.editorUI
 		/**@private */	
 		protected var _skin:String;
 		
-		
+		private var rec:Sprite;
 		/**
 		 * 创建一个 <code>Image</code> 实例
 		 * @param skin 皮肤资源地址。
 		 */		
 		public function Image(skin:String = null)
 		{
+			rec = new Sprite();
 			this.skin = skin;
 			this.on(Event.ADDED, this, _addedToParent);
+			callLater(checkIfShowRec);
 		}
 		private function _addedToParent():void
 		{
@@ -129,6 +133,19 @@ package laya.editorUI
 			super.destroy(true);
 			_bitmap && _bitmap.destroy();
 			_bitmap = null;
+		}
+		
+		protected function checkIfShowRec():void
+		{
+			if (IDEAPIS.isPreview) return;
+			rec.graphics.clear();
+			rec.removeSelf();
+			if (!skin)
+			{
+				rec.graphics.drawRect(0, 0, width?width:50, height?height:50, null, "#666666");
+				addChild(rec);
+			}
+			repaint();
 		}
 		
 		/**
@@ -182,9 +199,11 @@ package laya.editorUI
 		}
 		
 		public function set source(value:*):void {
+			callLater(checkIfShowRec);
 			if (!_bitmap) return;
 			_bitmap.source = value;
 			event(Event.LOADED);
+			onCompResize();
 			repaint();
 		}
 		
@@ -213,14 +232,16 @@ package laya.editorUI
 		override public function set width(value:Number):void
 		{
 			super.width = value;
-			_bitmap.width = value==0?0.0000001:value;
+			_bitmap.width = value == 0?0.0000001:value;
+			callLater(checkIfShowRec);
 		}
 		
 		/**@inheritDoc */
 		override public function set height(value:Number):void
 		{
 			super.height = value;
-			_bitmap.height = value==0?0.0000001:value;
+			_bitmap.height = value == 0?0.0000001:value;
+			callLater(checkIfShowRec);
 		}
 		
 		/**

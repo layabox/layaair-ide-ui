@@ -8,5 +8,10 @@ package laya.editorUI {
 		public function GraphicPic() {
 		
 		}	
+		
+		override protected function checkIfShowRec():void 
+		{
+			
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package laya.editorUI {
 	import laya.events.Event;
+	import laya.ide.managers.IDEAPIS;
+	import laya.maths.Point;
 	import laya.maths.Rectangle;
 	import laya.ui.IItem;
 	import laya.ui.IRender;
@@ -172,7 +174,13 @@ package laya.editorUI {
 		protected var _cellOffset:Number = 0;
 		/**@private */
 		protected var _isMoved:Boolean;
-		
+		private var _cacheContent:Boolean;
+		/**@private */
+		protected var _createdLine:int = 0;
+		/**@private */
+		protected var _cellChanged:Boolean;
+		/**@private */
+		protected var _offset:Point = new Point();
 		/**@inheritDoc */
 		override public function destroy(destroyChild:Boolean = true):void {
 			super.destroy(destroyChild);
@@ -212,7 +220,8 @@ package laya.editorUI {
 			var scrollBar:VScrollBar = new VScrollBar();
 			scrollBar.name = "scrollBar";
 			scrollBar.right = 0;
-			scrollBar.skin = value;
+			if (value && value != " ")
+				scrollBar.skin = value;
 			this.scrollBar = scrollBar;
 			addChild(scrollBar);
 			callLater(changeCells);
@@ -231,7 +240,8 @@ package laya.editorUI {
 			var scrollBar:HScrollBar = new HScrollBar();
 			scrollBar.name = "scrollBar";
 			scrollBar.bottom = 0;
-			scrollBar.skin = value;
+			if (value && value != " ")
+				scrollBar.skin = value;
 			this.scrollBar = scrollBar;
 			addChild(scrollBar);
 			callLater(changeCells);
@@ -250,7 +260,11 @@ package laya.editorUI {
 				_scrollBar = value;
 				if (value) {
 					addChild(_scrollBar);
-					//_scrollBar.on(Event.CHANGE, this, onScrollBarChange);
+					if (IDEAPIS.isPreview)
+					{
+						_scrollBar.on(Event.CHANGE, this, onScrollBarChange);
+					}
+					
 					_isVertical = _scrollBar.isVertical;
 				}
 			}
@@ -356,8 +370,8 @@ package laya.editorUI {
 				scrollBar = getChildByName("scrollBar") as ScrollBar;
 				
 				//自适应宽高
-				var cell:Box = createItem();
-				
+				var cell:Box = _getOneCell();
+
 				var cellWidth:Number = (cell.width + _spaceX) || 1;
 				var cellHeight:Number = (cell.height + _spaceY) || 1;
 				if (_width > 0) _repeatX2 = _isVertical ? Math.round(_width / cellWidth) : Math.ceil(_width / cellWidth);
@@ -384,10 +398,15 @@ package laya.editorUI {
 				}
 			}
 		}
-		
+		private function _getOneCell():Box {
+
+			var item:Box = createItem();
+			_offset.setTo(item.x, item.y);
+			return item;
+		}
 		private function _createItems(startY:int, numX:int, numY:int):void {
 			var box:Box = _content;
-			var cell:Box = createItem();
+			var cell:Box = _getOneCell();
 			var cellWidth:Number = cell.width + _spaceX;
 			var cellHeight:Number = cell.height + _spaceY;
 			
@@ -403,8 +422,8 @@ package laya.editorUI {
 			for (var k:int = startY; k < numY; k++) {
 				for (var l:int = 0; l < numX; l++) {
 					cell = createItem();
-					cell.x = (_isVertical ? l : k) * cellWidth - box.x;
-					cell.y = (_isVertical ? k : l) * cellHeight - box.y;
+					cell.x = (_isVertical ? l : k) * cellWidth - box.x + _offset.x;
+					cell.y = (_isVertical ? k : l) * cellHeight - box.y + _offset.y;
 					cell.name = "item" + (k * numX + l);
 					box.addChild(cell);
 					addCell(cell);
@@ -412,7 +431,9 @@ package laya.editorUI {
 			}
 		}
 		protected function createItem():Box {
-			return _itemRender is Function ? new _itemRender() : View.createComp(_itemRender) as Box;
+			var rst:Box;
+			rst=_itemRender is Function ? new _itemRender() : View.createComp(_itemRender) as Box;
+			return rst;
 		}
 		
 		/**
@@ -421,12 +442,16 @@ package laya.editorUI {
 		 * @param cell 需要添加的单元格对象。
 		 */
 		protected function addCell(cell:Box):void {
-			//cell.on(Event.CLICK, this, onCellMouse);
-			//cell.on(Event.RIGHT_CLICK, this, onCellMouse);
-			//cell.on(Event.MOUSE_OVER, this, onCellMouse);
-			//cell.on(Event.MOUSE_OUT, this, onCellMouse);
-			//cell.on(Event.MOUSE_DOWN, this, onCellMouse);
-			//cell.on(Event.MOUSE_UP, this, onCellMouse);
+			if (IDEAPIS.isPreview)
+			{
+				cell.on(Event.CLICK, this, onCellMouse);
+				cell.on(Event.RIGHT_CLICK, this, onCellMouse);
+				cell.on(Event.MOUSE_OVER, this, onCellMouse);
+				cell.on(Event.MOUSE_OUT, this, onCellMouse);
+				cell.on(Event.MOUSE_DOWN, this, onCellMouse);
+				cell.on(Event.MOUSE_UP, this, onCellMouse);
+			}
+			
 			_cells.push(cell);
 		}
 		
@@ -508,7 +533,7 @@ package laya.editorUI {
 			var scrollValue:Number = _scrollBar.value;
 			var lineX:int = (_isVertical ? this.repeatX : this.repeatY);
 			var lineY:int = (_isVertical ? this.repeatY : this.repeatX);
-			var scrollLine:int = Math.floor(scrollValue / _cellSize);
+						var scrollLine:int = Math.floor((scrollValue + _offset.y * 2) / _cellSize);
 			
 			if (!cacheContent) {
 				var index:int = scrollLine * lineX;
@@ -545,15 +570,15 @@ package laya.editorUI {
 				if (_createdLine - scrollLine < num) {
 					_createItems(_createdLine, lineX, _createdLine + num);
 					_createdLine += num;
-					renderItems(_createdLine * lineX, 0);
+					//renderItems(_createdLine * lineX, 0);
 				}
 			}
 			
 			var r:Rectangle = _content.scrollRect;
 			if (_isVertical) {
-				r.y = scrollValue;
+				r.y = scrollValue - _offset.y;
 			} else {
-				r.x = scrollValue;
+				r.x = scrollValue - _offset.x;
 			}
 			_content.conchModel && _content.conchModel.scrollRect(r.x, r.y, r.width, r.height);
 			repaint();
@@ -726,6 +751,7 @@ package laya.editorUI {
 		 * @return
 		 */
 		public function get length():int {
+			if (!_array) return 0;
 			return _array.length;
 		}
 		
@@ -744,6 +770,16 @@ package laya.editorUI {
 		public function get cells():Vector.<Box> {
 			runCallLater(changeCells);
 			return _cells;
+		}
+		
+		public function get cacheContent():Boolean 
+		{
+			return false;
+		}
+		
+		public function set cacheContent(value:Boolean):void 
+		{
+			_cacheContent = value;
 		}
 		
 		/**

@@ -1,6 +1,7 @@
 package laya.editorUI {
 	import laya.display.Sprite;
 	import laya.events.Event;
+	import laya.ide.managers.IDEAPIS;
 	import laya.maths.Point;
 	import laya.utils.Ease;
 	import laya.utils.Handler;
@@ -113,10 +114,15 @@ package laya.editorUI {
 		/**@inheritDoc */
 		override protected function initialize():void {
 			_slider.showLabel = false;
-			//_slider.on(Event.CHANGE, this, onSliderChange);
+			
 			_slider.setSlider(0, 0, 0);
-			//_upButton.on(Event.MOUSE_DOWN, this, onButtonMouseDown);
-			//_downButton.on(Event.MOUSE_DOWN, this, onButtonMouseDown);
+			if (IDEAPIS.isPreview)
+			{
+				_slider.on(Event.CHANGE, this, onSliderChange);
+				_upButton.on(Event.MOUSE_DOWN, this, onButtonMouseDown);
+				_downButton.on(Event.MOUSE_DOWN, this, onButtonMouseDown);
+			}
+			
 		}
 		
 		/**
@@ -145,6 +151,7 @@ package laya.editorUI {
 		
 		/**@private */
 		protected function slide(isUp:Boolean):void {
+			if (!this.value) this.value = 0;
 			if (isUp) value -= _scrollSize;
 			else value += _scrollSize;
 		}
@@ -349,8 +356,12 @@ package laya.editorUI {
 			}
 			_target = value;
 			if (value) {
-				//_mouseWheelEnable && _target.on(Event.MOUSE_WHEEL, this, onTargetMouseWheel);
-				//_touchScrollEnable && _target.on(Event.MOUSE_DOWN, this, onTargetMouseDown);
+				if (IDEAPIS.isPreview)
+				{
+					_mouseWheelEnable && _target.on(Event.MOUSE_WHEEL, this, onTargetMouseWheel);
+					_touchScrollEnable && _target.on(Event.MOUSE_DOWN, this, onTargetMouseDown);
+				}
+				
 			}
 		}
 		

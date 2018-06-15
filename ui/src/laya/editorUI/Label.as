@@ -3,6 +3,8 @@ package laya.editorUI {
 	import laya.editorUI.Component;
 	import laya.editorUI.UIUtils;
 	import laya.events.Event;
+	import laya.ide.managers.IDEAPIS;
+	import laya.utils.Utils;
 	
 	/**
 	 * 文本内容发生改变后调度。
@@ -134,6 +136,28 @@ package laya.editorUI {
 		 */
 		protected var _tf:Text;
 		public static var labelDefaultFont:String;
+		public static var labelDefaultSize:int = 12;
+		
+		public static function initDefaultFontInfo(fontInfo:String):void
+		{
+			//"12px Arial"
+			labelDefaultFont = "Arial";
+			labelDefaultSize = 12;
+			if (!fontInfo) return;
+			var tArr:Array;
+			tArr = fontInfo["trim"]().split("px");
+			if (tArr.length == 2)
+			{
+				var tSize:int;
+				tSize = Utils.parseInt(tArr[0]);
+				if (tSize > 0)
+				{
+					labelDefaultSize = tSize;
+					labelDefaultFont = tArr[1]["trim"]();
+				}
+			}
+		}
+		
 		/**
 		 * 创建一个新的 <code>Label</code> 实例。
 		 * @param text 文本内容字符串。
@@ -141,8 +165,22 @@ package laya.editorUI {
 		public function Label(text:String = "") {
 			Font.defaultColor = Styles.labelColor;
 			this.text = text;
+			callLater(checkIfShowRec);
 		}
-		
+		override protected function changeSize():void 
+		{
+			super.changeSize();
+			callLater(checkIfShowRec);
+		}
+		protected function checkIfShowRec():void
+		{
+			if (IDEAPIS.isPreview) return;
+			this.graphics.clear();
+			if (!text)
+			{
+				this.graphics.drawRect(0, 0, width?width:100, height?height:22, null, "#666666");
+			}
+		}
 		/**@inheritDoc */
 		override public function destroy(destroyChild:Boolean = true):void {
 			super.destroy(destroyChild);
@@ -163,13 +201,14 @@ package laya.editorUI {
 		public function get text():String {
 			return _tf.text;
 		}
-		private static var _textReg:RegExp = new RegExp("\\\\n", "g");
+		
 		public function set text(value:String):void {
 			if (_tf.text != value) {
 				if(value)
-				value=(value+"").replace(_textReg,"\n");
+				value=UIUtils.adptString(value+"");
 				_tf.text = value;
 				event(Event.CHANGE);
+				callLater(checkIfShowRec);
 			}
 		}
 		
@@ -342,18 +381,6 @@ package laya.editorUI {
 		
 		public function set strokeColor(value:String):void {
 			_tf.strokeColor = value;
-		}
-		
-		/**
-		 * @copy laya.display.Text#asPassword
-		 * @return
-		 */
-		public function get asPassword():Boolean {
-			return _tf.asPassword;
-		}
-		
-		public function set asPassword(value:Boolean):void {
-			_tf.asPassword = value;
 		}
 		
 		/**
