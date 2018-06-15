@@ -3,7 +3,6 @@ package laya.editorUI.phisics {
 	
 	/**
 	 * @Script {name:laya.physics.TrapezoidCollider}
-	 * @author yung
 	 */
 	public class TrapezoidCollider extends GraphicBase {
 		

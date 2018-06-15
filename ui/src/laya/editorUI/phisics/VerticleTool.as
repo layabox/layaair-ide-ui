@@ -1,8 +1,7 @@
 package laya.editorUI.phisics 
 {
 	/**
-	 * ...
-	 * @author ww
+	 * 多边形工具
 	 */
 	public class VerticleTool 
 	{

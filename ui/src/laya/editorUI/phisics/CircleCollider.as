@@ -3,7 +3,6 @@ package laya.editorUI.phisics {
 	
 	/**
 	 * @Script {name:laya.physics.CircleCollider}
-	 * @author yung
 	 */
 	public class CircleCollider extends GraphicBase {
 		

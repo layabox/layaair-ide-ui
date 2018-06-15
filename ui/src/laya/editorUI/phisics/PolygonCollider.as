@@ -5,7 +5,6 @@ package laya.editorUI.phisics {
 	
 	/**
 	 * @Script {name:laya.physics.PolygonCollider}
-	 * @author yung
 	 */
 	public class PolygonCollider extends DrawCircle {
 		

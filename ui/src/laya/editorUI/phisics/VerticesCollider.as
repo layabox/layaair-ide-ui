@@ -1,8 +1,7 @@
 package laya.editorUI.phisics {
 	import laya.editorUI.graphic.DrawPoly;
 	/**
-	 * 有bug
-	 * @author yung
+	 * 多边形
 	 */
 	public class VerticesCollider extends DrawPoly  {
 		/**

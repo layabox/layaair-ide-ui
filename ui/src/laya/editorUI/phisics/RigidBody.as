@@ -3,8 +3,7 @@ package laya.editorUI.phisics
 	import laya.editorUI.Script;
 	
 	/**
-	 * ...
-	 * @author ww
+	 * 刚体
 	 */
 	public class RigidBody extends Script 
 	{

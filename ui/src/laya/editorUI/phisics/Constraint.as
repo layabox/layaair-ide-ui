@@ -7,8 +7,7 @@ package laya.editorUI.phisics {
 	import laya.renders.RenderContext;
 	
 	/**
-	 * ...
-	 * @author ww
+	 * 约束
 	 */
 	public class Constraint extends Script {
 		public var other:int;

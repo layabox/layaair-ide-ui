@@ -3,7 +3,6 @@ package laya.editorUI.phisics {
 	
 	/**
 	 * @Script {name:laya.physics.BoxCollider}
-	 * @author yung
 	 */
 	public class BoxCollider extends DrawRect {
 		/**

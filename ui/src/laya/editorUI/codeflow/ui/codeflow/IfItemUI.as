@@ -1,5 +1,6 @@
 /**Created by the LayaAirIDE,do not modify.*/
 package laya.editorUI.codeflow.ui.codeflow {
+	import laya.display.Sprite;
 	import laya.ui.*;
 	import laya.editorUI.codeflow.CodeFlowItem;
 	
